@@ -7,10 +7,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import ni.edu.uam.gestiontareascompose.model.Prioridad
 import ni.edu.uam.gestiontareascompose.model.Tarea
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,6 +22,10 @@ fun PantallaTareas() {
 
     var titulo by remember { mutableStateOf("") }
 
+    var prioridadSeleccionada by remember {
+        mutableStateOf(Prioridad.MEDIA)
+    }
+
     var filtro by remember {
         mutableStateOf("Todas")
     }
@@ -26,6 +33,12 @@ fun PantallaTareas() {
     val tareas = remember {
         mutableStateListOf<Tarea>()
     }
+
+    val pendientes = tareas.count { !it.completada }
+
+    val porcentaje =
+        if (tareas.isEmpty()) 0
+        else (tareas.count { it.completada } * 100 / tareas.size)
 
     val tareasFiltradas = when (filtro) {
 
@@ -43,9 +56,12 @@ fun PantallaTareas() {
 
         topBar = {
 
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Text("Gestión de Tareas")
+                    Text(
+                        "Gestión de Tareas",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             )
         }
@@ -58,149 +74,188 @@ fun PantallaTareas() {
                 .padding(16.dp)
         ) {
 
-            OutlinedTextField(
-                value = titulo,
-                onValueChange = { titulo = it },
-                label = {
-                    Text("Nueva tarea")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("campoTitulo")
-            )
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
 
-            Spacer(modifier = Modifier.height(10.dp))
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
 
-            Button(
-                onClick = {
+                    Text(
+                        "Nueva tarea",
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
-                    if (titulo.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                        tareas.add(
-                            Tarea(
-                                id = tareas.size + 1,
-                                titulo = titulo
-                            )
+                    OutlinedTextField(
+                        value = titulo,
+                        onValueChange = {
+                            titulo = it
+                        },
+                        label = {
+                            Text("Título")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("campoTitulo")
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text("Prioridad")
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row {
+
+                        FilterChip(
+                            selected = prioridadSeleccionada == Prioridad.ALTA,
+                            onClick = {
+                                prioridadSeleccionada = Prioridad.ALTA
+                            },
+                            label = { Text("Alta") }
                         )
 
-                        titulo = ""
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        FilterChip(
+                            selected = prioridadSeleccionada == Prioridad.MEDIA,
+                            onClick = {
+                                prioridadSeleccionada = Prioridad.MEDIA
+                            },
+                            label = { Text("Media") }
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        FilterChip(
+                            selected = prioridadSeleccionada == Prioridad.BAJA,
+                            onClick = {
+                                prioridadSeleccionada = Prioridad.BAJA
+                            },
+                            label = { Text("Baja") }
+                        )
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("btnAgregar")
-            ) {
-                Text("Agregar tarea")
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btnAgregar"),
+                        onClick = {
+
+                            if (titulo.isNotBlank()) {
+
+                                tareas.add(
+                                    Tarea(
+                                        id = tareas.size + 1,
+                                        titulo = titulo,
+                                        prioridad = prioridadSeleccionada
+                                    )
+                                )
+
+                                titulo = ""
+                            }
+                        }
+                    ) {
+                        Text("Agregar Tarea")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card {
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
 
                 Column(
-                    modifier = Modifier.padding(12.dp)
+                    modifier = Modifier.padding(16.dp)
                 ) {
 
                     Text(
-                        "Pendientes: ${tareas.count { !it.completada }}",
+                        "Resumen",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        "Pendientes: $pendientes",
                         modifier = Modifier.testTag("txtPendientes")
                     )
 
                     Text(
-                        "Completadas: ${tareas.count { it.completada }}"
+                        "Total: ${tareas.size}"
                     )
 
-                    val porcentaje =
-                        if (tareas.isEmpty()) 0
-                        else (tareas.count { it.completada } * 100 / tareas.size)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        "Progreso: $porcentaje%"
+                    LinearProgressIndicator(
+                        progress = { porcentaje / 100f },
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text("Progreso: $porcentaje%")
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row {
 
                 FilterChip(
                     selected = filtro == "Todas",
-                    onClick = { filtro = "Todas" },
-                    label = { Text("Todas") }
+                    onClick = {
+                        filtro = "Todas"
+                    },
+                    label = {
+                        Text("Todas")
+                    }
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 FilterChip(
                     selected = filtro == "Pendientes",
-                    onClick = { filtro = "Pendientes" },
-                    label = { Text("Pendientes") }
+                    onClick = {
+                        filtro = "Pendientes"
+                    },
+                    label = {
+                        Text("Pendientes")
+                    }
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 FilterChip(
                     selected = filtro == "Completadas",
-                    onClick = { filtro = "Completadas" },
-                    label = { Text("Completadas") }
+                    onClick = {
+                        filtro = "Completadas"
+                    },
+                    label = {
+                        Text("Completadas")
+                    }
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn {
 
                 items(tareasFiltradas) { tarea ->
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    ) {
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement =
-                                Arrangement.SpaceBetween
-                        ) {
-
-                            Row {
-
-                                Checkbox(
-                                    checked = tarea.completada,
-                                    onCheckedChange = {
-                                        tarea.completada = it
-                                    }
-                                )
-
-                                Spacer(
-                                    modifier = Modifier.width(8.dp)
-                                )
-
-                                Text(
-                                    text = tarea.titulo,
-                                    textDecoration =
-                                        if (tarea.completada)
-                                            TextDecoration.LineThrough
-                                        else
-                                            TextDecoration.None
-                                )
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    tareas.remove(tarea)
-                                }
-                            ) {
-
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Eliminar"
-                                )
-                            }
+                    TareaCard(
+                        tarea = tarea,
+                        onDelete = {
+                            tareas.remove(tarea)
                         }
-                    }
+                    )
                 }
             }
         }

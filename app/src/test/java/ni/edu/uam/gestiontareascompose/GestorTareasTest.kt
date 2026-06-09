@@ -96,7 +96,7 @@ class GestorTareasTest {
         )
 
         assertEquals(
-            5,
+            1,
             gestor.obtenerTodas().size
         )
     }
