@@ -85,4 +85,19 @@ class GestorTareasTest {
             gestor.contarPendientes()
         )
     }
+
+    @Test
+    fun pruebaNegativa_fallaIntencionalmente() {
+
+        val gestor = GestorTareas()
+
+        gestor.agregarTarea(
+            Tarea(1,"Comprar","")
+        )
+
+        assertEquals(
+            5,
+            gestor.obtenerTodas().size
+        )
+    }
 }
