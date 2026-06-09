@@ -18,15 +18,25 @@ class GestorTareas {
         tareas.find { it.id == id }?.completada = true
     }
 
-    fun obtenerPendientes(): List<Tarea> {
-        return tareas.filter { !it.completada }
-    }
+    fun obtenerTodas(): List<Tarea> = tareas
 
-    fun contarPendientes(): Int {
-        return tareas.count { !it.completada }
-    }
+    fun obtenerPendientes(): List<Tarea> =
+        tareas.filter { !it.completada }
 
-    fun obtenerTodas(): List<Tarea> {
-        return tareas
+    fun contarPendientes(): Int =
+        tareas.count { !it.completada }
+
+    fun obtenerCompletadas(): List<Tarea> =
+        tareas.filter { it.completada }
+
+    fun ordenarAlfabeticamente(): List<Tarea> =
+        tareas.sortedBy { it.titulo }
+
+    fun porcentajeCompletadas(): Double {
+
+        if (tareas.isEmpty()) return 0.0
+
+        return tareas.count { it.completada }
+            .toDouble() * 100 / tareas.size
     }
 }

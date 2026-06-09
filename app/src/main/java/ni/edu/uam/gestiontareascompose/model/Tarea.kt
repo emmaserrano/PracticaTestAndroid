@@ -3,6 +3,6 @@ package ni.edu.uam.gestiontareascompose.model
 data class Tarea(
     val id: Int,
     val titulo: String,
-    val descripcion: String,
+    val descripcion: String = "",
     var completada: Boolean = false
 )
